@@ -10,9 +10,19 @@
     let
       # Define the overlay that injects our custom python packages and fastapi server
       localOverlay = final: prev: {
+        # Stub out aotriton — its FlashAttention kernels require MFMA instructions
+        # only available on CDNA/RDNA GPUs. The MI50 (gfx906, Vega 20) can't use
+        # them; PyTorch falls back to Math SDPA regardless. This avoids hours of
+        # compilation for a library that produces no usable output on this hardware.
+        rocmPackages = prev.rocmPackages.overrideScope (rfinal: rprev: {
+          aotriton = prev.emptyDirectory.overrideAttrs {
+            name = "aotriton-stub";
+          };
+        });
+
         python3 = prev.python3.override {
           packageOverrides = pythonFinal: pythonPrev: {
-            # ROCm PyTorch overrides
+            # ROCm PyTorch (without aotriton, see above)
             torchWithRocm = pythonPrev.torch.override {
               triton = pythonFinal.triton-no-cuda;
               rocmSupport = true;
