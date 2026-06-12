@@ -26,6 +26,14 @@
             phonemizer = pythonFinal.phonemizer-fork;
             text2num = pythonFinal.callPackage ./pkgs/text2num { };
             en-core-web-sm = pythonFinal.callPackage ./pkgs/en-core-web-sm { };
+
+            # Override pydub to use standard ffmpeg instead of ffmpeg-full (avoids compiling ffmpeg-full)
+            pydub = pythonPrev.pydub.override {
+              ffmpeg-full = final.ffmpeg;
+            };
+
+            # Disable wandb to prevent pulling in opencv, scikit-image, moviepy, and pillow-heif (avoids compiling opencv)
+            wandb = null;
           };
         };
         python3Packages = final.python3.pkgs;
