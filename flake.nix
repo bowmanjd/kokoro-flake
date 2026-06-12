@@ -28,9 +28,15 @@
             en-core-web-sm = pythonFinal.callPackage ./pkgs/en-core-web-sm { };
 
             # Override pydub to use standard ffmpeg instead of ffmpeg-full (avoids compiling ffmpeg-full)
-            pydub = pythonPrev.pydub.override {
-              ffmpeg-full = final.ffmpeg;
-            };
+            pydub = let
+              args = pythonPrev.pydub.override.__functionArgs or {};
+            in
+              pythonPrev.pydub.override (
+                if builtins.hasAttr "ffmpeg-full" args then
+                  { ffmpeg-full = final.ffmpeg; }
+                else
+                  { ffmpeg = final.ffmpeg; }
+              );
 
             # Disable wandb to prevent pulling in opencv, scikit-image, moviepy, and pillow-heif (avoids compiling opencv)
             wandb = null;
