@@ -15,8 +15,10 @@
         # them; PyTorch falls back to Math SDPA regardless. This avoids hours of
         # compilation for a library that produces no usable output on this hardware.
         rocmPackages = prev.rocmPackages.overrideScope (rfinal: rprev: {
-          aotriton = prev.emptyDirectory.overrideAttrs {
-            name = "aotriton-stub";
+          # Instead of emptyDirectory (which breaks PyTorch build due to missing libaotriton_v2.so),
+          # we configure aotriton with empty gpuTargets to build a fast shim.
+          aotriton = rprev.aotriton.override {
+            gpuTargets = [ ];
           };
         });
 
