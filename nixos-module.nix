@@ -174,7 +174,9 @@ in
       "d ${cfg.stateDir}/models 0750 kokoro kokoro -"
       "d ${cfg.stateDir}/output 0750 kokoro kokoro -"
       "d ${cfg.stateDir}/temp 0750 kokoro kokoro -"
+      "d ${cfg.stateDir}/.config 0750 kokoro kokoro -"
       "d ${cfg.stateDir}/.config/miopen 0750 kokoro kokoro -"
+      "d ${cfg.stateDir}/.cache 0750 kokoro kokoro -"
       "d ${cfg.stateDir}/.cache/miopen 0750 kokoro kokoro -"
     ];
 
