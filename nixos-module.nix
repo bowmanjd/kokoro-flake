@@ -127,7 +127,7 @@ in
 
         # Paths — absolute paths override the os.path.join logic in paths.py
         MODEL_DIR = "${cfg.stateDir}/models";
-        VOICES_DIR = "${kokoro-fastapi}/${kokoro-fastapi.python.sitePackages}/voices/v1_0";
+        VOICES_DIR = "${kokoro-fastapi}/share/kokoro-fastapi/api/src/voices/v1_0";
         OUTPUT_DIR = "${cfg.stateDir}/output";
         TEMP_FILE_DIR = "${cfg.stateDir}/temp";
         WEB_PLAYER_PATH = "${kokoro-fastapi}/share/kokoro-fastapi/web";
