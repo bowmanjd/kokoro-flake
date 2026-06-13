@@ -4,17 +4,28 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+
+    # Pinned nixpkgs for PyTorch ROCm — update separately to avoid 2+ hour rebuilds.
+    # Consumers override via `inputs.nixpkgs-torch.follows`.
+    nixpkgs-torch.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils, nixpkgs-torch, ... }:
     let
       # Define the overlay that injects our custom python packages and fastapi server
-      localOverlay = final: prev: {
+      localOverlay = final: prev:
+        let
+          # Use pinned nixpkgs for torch to avoid rebuilds on every flake update
+          torchPkgs = import nixpkgs-torch {
+            system = prev.stdenv.hostPlatform.system;
+            config = { allowUnfree = true; };
+          };
+        in {
         # Stub out aotriton — its FlashAttention kernels require MFMA instructions
         # only available on CDNA/RDNA GPUs. The MI50 (gfx906, Vega 20) can't use
         # them; PyTorch falls back to Math SDPA regardless. This avoids hours of
         # compilation for a library that produces no usable output on this hardware.
-        rocmPackages = prev.rocmPackages.overrideScope (rfinal: rprev: {
+        rocmPackages = torchPkgs.rocmPackages.overrideScope (rfinal: rprev: {
           # Instead of emptyDirectory (which breaks PyTorch build due to missing libaotriton_v2.so),
           # we configure aotriton with empty gpuTargets to build a fast shim.
           aotriton = rprev.aotriton.override {
@@ -24,11 +35,12 @@
 
         python3 = prev.python3.override {
           packageOverrides = pythonFinal: pythonPrev: {
-            # ROCm PyTorch (without aotriton, see above)
-            torchWithRocm = pythonPrev.torch.override {
-              triton = pythonFinal.triton-no-cuda;
+            # ROCm PyTorch from pinned nixpkgs (without aotriton, see above)
+            torchWithRocm = torchPkgs.python3Packages.torch.override {
+              triton = torchPkgs.python3Packages.triton-no-cuda;
               rocmSupport = true;
               cudaSupport = false;
+              rocmPackages = final.rocmPackages;
             };
             torch = pythonFinal.torchWithRocm;
 
