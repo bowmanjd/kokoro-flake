@@ -160,9 +160,9 @@ in
 
         # Hardening
         NoNewPrivileges = true;
-        ProtectSystem = "strict";
+        ProtectSystem = "full";
         ProtectHome = true;
-        PrivateTmp = true;
+        PrivateTmp = false;
         ReadWritePaths = [ cfg.stateDir ];
         StateDirectory = "kokoro";
         StateDirectoryMode = "0750";
